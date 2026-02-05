@@ -92,27 +92,32 @@ class IntelligenceExtractor:
         """Extract UPI IDs with enhanced pattern detection"""
         upi_ids = set()
         
-        # Pattern 1: Standard UPI format (alphanumeric@provider)
-        # More permissive to catch variations
-        pattern1 = r'\b[\w\.\-]+@[\w\.\-]+\b'
+        # Pattern 1: Catch all @something patterns (user@anything)
+        # Key logic: If there's NO dot after @, it's a UPI ID
+        # If there IS a dot after @, it's an email (handled separately)
+        pattern1 = r'\b[\w\.\-]+@[\w\-]+\b'
         matches = re.findall(pattern1, text.lower())
         
         for match in matches:
-            # Check if it's a known UPI provider
             domain = match.split('@')[1] if '@' in match else ''
-            if any(provider in domain for provider in self.upi_providers):
+            # UPI IDs don't have dots in the domain part
+            # Emails do (gmail.com, yahoo.com, etc.)
+            if '.' not in domain:
                 upi_ids.add(match)
-            # Also check for common patterns like digits@provider
-            elif re.match(r'\d+@\w+', match):
+            # Also accept known UPI providers even with dots
+            elif any(provider in domain for provider in self.upi_providers):
                 upi_ids.add(match)
         
         # Pattern 2: UPI IDs mentioned with keywords
-        pattern2 = r'(?:upi|vpa|payment)[\s\:\-]*id[\s\:\-]*([\w\.\-]+@[\w\.\-]+)'
+        pattern2 = r'(?:upi|vpa|payment)[\s\:\-]*(?:id)?[\s\:\-]*([\w\.\-]+@[\w\-]+)'
         matches2 = re.findall(pattern2, text, re.IGNORECASE)
-        upi_ids.update(m.lower() for m in matches2)
+        for m in matches2:
+            domain = m.split('@')[1] if '@' in m else ''
+            if '.' not in domain:
+                upi_ids.add(m.lower())
         
-        # Pattern 3: Phone number based UPI (10digits@provider)
-        pattern3 = r'\b[6-9]\d{9}@[\w\.\-]+\b'
+        # Pattern 3: Phone number based UPI (10digits@anything)
+        pattern3 = r'\b[6-9]\d{9}@[\w\-]+\b'
         matches3 = re.findall(pattern3, text.lower())
         upi_ids.update(matches3)
         
