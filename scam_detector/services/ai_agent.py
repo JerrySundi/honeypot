@@ -192,33 +192,29 @@ Respond as scared Ramesh (1-2 sentences, DON'T repeat questions you already aske
         if message_count <= 1:
             return "Be scared and worried. Ask what you should do."
         
-        # Priority 1: Get payment details (UPI or bank account)
-        if not has_upi and not has_bank:
-            return "Ask where to send money - request THEIR UPI ID or bank account number."
+        # Priority 1: Get phishing link first
+        if not has_link:
+            return "If they mentioned website or link, say it's not opening and ask them to send it again."
         
-        # Priority 2: Get IFSC code if they gave payment details
-        if (has_upi or has_bank) and not has_ifsc:
-            return "They gave payment info but no IFSC. Ask: 'Which bank? What's the IFSC code?'"
-        
-        # Priority 3: Get phone number
+        # Priority 2: Get phone number
         if not has_phone:
             return "Ask for THEIR phone number so you can call them if there's a problem."
         
-        # Priority 4: If they mentioned bank name but no branch, ask for branch
-        if has_ifsc and message_count <= 8:
-            return "Ask for the bank branch name: 'Which branch is this account in?'"
+        # Priority 3: Get UPI ID
+        if not has_upi:
+            return "Ask where to send money - request THEIR UPI ID."
         
-        # Priority 5: Get email
-        if not has_email and message_count > 3:
+        # Priority 4: Get bank account, IFSC code, and branch name all together
+        if not has_bank or not has_ifsc:
+            return "Ask for bank details: 'Which bank account? What's the IFSC code? Which branch is this account in?'"
+        
+        # Priority 5: Get email address
+        if not has_email:
             return "Ask for their email: 'Can you also give your email for confirmation?'"
         
         # Priority 6: Get alternate phone if only have one
-        if has_phone and len(intelligence.get('phoneNumbers', [])) < 2 and message_count > 5:
+        if has_phone and len(intelligence.get('phoneNumbers', [])) < 2 and message_count > 8:
             return "Ask for alternate phone number: 'Give me one more number in case first is busy?'"
-        
-        # Priority 7: Get links if they mention website
-        if not has_link and message_count > 4:
-            return "If they mentioned website or link, say it's not opening and ask them to send it again."
         
         # Continue naturally
         return "React to what they said. Express concern and trust them. Ask follow-up questions about the process."
