@@ -204,9 +204,9 @@ Respond as scared Ramesh (1-2 sentences, DON'T repeat questions you already aske
         if not has_upi:
             return "Ask where to send money - request THEIR UPI ID."
         
-        # Priority 4: Get bank account, IFSC code, and branch name all together
+        # Priority 4: Get name, bank account, IFSC code, and branch name all together
         if not has_bank or not has_ifsc:
-            return "Ask for bank details: 'Which bank account? What's the IFSC code? Which branch is this account in?'"
+            return "Ask for name and bank details: 'What is your name sir? Which bank account? What's the IFSC code? Which branch is this account in?'"
         
         # Priority 5: Get email address
         if not has_email:

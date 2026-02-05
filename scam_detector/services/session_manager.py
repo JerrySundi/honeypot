@@ -66,6 +66,7 @@ class SessionManager:
                 "phishingLinks": [],
                 "emailAddresses": [],
                 "ifscCodes": [],
+                "scammerName": [],
                 "suspiciousKeywords": []
             },
             "agentPersona": {

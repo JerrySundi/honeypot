@@ -50,6 +50,7 @@ class IntelligenceExtractor:
             "phishingLinks": self._extract_urls(text),
             "emailAddresses": self._extract_emails(text),
             "ifscCodes": self._extract_ifsc_codes(text),
+            "scammerName": self._extract_names(text),
             "suspiciousKeywords": self._extract_keywords(text)
         }
         
@@ -190,41 +191,81 @@ class IntelligenceExtractor:
     
     def _extract_urls(self, text: str) -> List[str]:
         """Extract URLs including obfuscated and shortened links"""
-        urls = set()
+        raw_urls = set()
         
         # Pattern 1: Standard http(s):// URLs
         pattern1 = r'https?://[^\s<>"{}|\\^`\[\]]+'
         matches1 = re.findall(pattern1, text, re.IGNORECASE)
-        urls.update(matches1)
+        raw_urls.update(matches1)
         
         # Pattern 2: www. links without protocol
         pattern2 = r'www\.[^\s<>"{}|\\^`\[\]]+'
         matches2 = re.findall(pattern2, text, re.IGNORECASE)
-        urls.update(matches2)
+        raw_urls.update(matches2)
         
         # Pattern 3: Common URL patterns without www or http
         # e.g., domain.com/path
         pattern3 = r'\b[\w\-]+\.(?:com|net|org|in|co\.in|info|xyz|tk|ml|ga|cf|gq|online|site|club)/[^\s<>"{}|\\^`\[\]]*'
         matches3 = re.findall(pattern3, text, re.IGNORECASE)
-        urls.update(matches3)
+        raw_urls.update(matches3)
         
         # Pattern 4: Shortened URLs (bit.ly, tinyurl, etc.)
         pattern4 = r'\b(?:bit\.ly|tinyurl\.com|goo\.gl|ow\.ly|short\.link|t\.co|rb\.gy)/[\w\-]+'
         matches4 = re.findall(pattern4, text, re.IGNORECASE)
-        urls.update(matches4)
+        raw_urls.update(matches4)
         
         # Pattern 5: URLs mentioned with keywords
         pattern5 = r'(?:visit|click|open|go to|link|url)[\s\:\-]*((?:https?://)?[\w\-]+\.[\w\-\.]+(?:/[\w\-\./?%&=]*)?)'
         matches5 = re.findall(pattern5, text, re.IGNORECASE)
-        urls.update(matches5)
+        raw_urls.update(matches5)
         
         # Pattern 6: Obfuscated URLs with spaces (e.g., "google . com")
         pattern6 = r'([\w\-]+)\s*\.\s*(com|net|org|in|co\.in)'
         matches6 = re.findall(pattern6, text, re.IGNORECASE)
         for domain, tld in matches6:
-            urls.add(f"{domain}.{tld}")
+            raw_urls.add(f"{domain}.{tld}")
         
-        return list(urls)
+        # Normalize and deduplicate URLs
+        normalized_urls = set()
+        for url in raw_urls:
+            # Remove trailing punctuation
+            url = url.rstrip('.,!?;:')
+            normalized_urls.add(url)
+        
+        # Further deduplicate: remove URLs that are subsets when protocol is stripped
+        final_urls = set()
+        url_list = list(normalized_urls)
+        
+        for i, url in enumerate(url_list):
+            # Strip protocol for comparison
+            url_no_protocol = url.replace('https://', '').replace('http://', '').replace('www.', '')
+            
+            # Check if this URL (without protocol) is contained in any other URL
+            is_duplicate = False
+            for j, other_url in enumerate(url_list):
+                if i != j:
+                    other_no_protocol = other_url.replace('https://', '').replace('http://', '').replace('www.', '')
+                    # If current URL is shorter and is substring of other, skip it
+                    if url_no_protocol != other_no_protocol and url_no_protocol in other_no_protocol:
+                        is_duplicate = True
+                        break
+                    # If they're the same after stripping protocol, keep the one with protocol
+                    if url_no_protocol == other_no_protocol:
+                        if url.startswith('http') and not other_url.startswith('http'):
+                            # Keep current, mark other as duplicate
+                            pass
+                        elif not url.startswith('http') and other_url.startswith('http'):
+                            # Skip current, other is better
+                            is_duplicate = True
+                            break
+                        elif i > j:  # Both same, already processed
+                            is_duplicate = True
+                            break
+            
+            if not is_duplicate:
+                final_urls.add(url)
+        
+        return list(final_urls)
     
     def _extract_emails(self, text: str) -> List[str]:
         """Extract email addresses"""
@@ -285,6 +326,31 @@ class IntelligenceExtractor:
         
         return list(ifsc_codes)
     
+    def _extract_names(self, text: str) -> List[str]:
+        """Extract names from text"""
+        names = set()
+        
+        # Pattern 1: Name mentioned with keywords
+        pattern1 = r'(?:my name is|I am|I\'m|name is|call me)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)'
+        matches1 = re.findall(pattern1, text)
+        names.update(matches1)
+        
+        # Pattern 2: Name at start of message (greeting)
+        pattern2 = r'^(?:Hello|Hi|Dear)\s+(?:Sir|Madam|,)?\s*(?:I am|I\'m|This is)?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)'
+        matches2 = re.findall(pattern2, text, re.MULTILINE)
+        names.update(matches2)
+        
+        # Pattern 3: Name before role/designation
+        pattern3 = r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:from|calling from|here from|representing)'
+        matches3 = re.findall(pattern3, text)
+        names.update(matches3)
+        
+        # Filter out common false positives
+        false_positives = {'Hello', 'Please', 'Send', 'Click', 'Visit', 'Thank', 'Urgent', 'Important'}
+        filtered_names = [name for name in names if name not in false_positives and len(name) > 2]
+        
+        return filtered_names
+    
     def _extract_keywords(self, text: str) -> List[str]:
         """Extract suspicious keywords"""
         text_lower = text.lower()
@@ -305,6 +371,7 @@ class IntelligenceExtractor:
             "phishingLinks": [],
             "emailAddresses": [],
             "ifscCodes": [],
+            "scammerName": [],
             "suspiciousKeywords": []
         }
     
