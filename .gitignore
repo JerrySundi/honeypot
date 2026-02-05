@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+*.pot
+*.pyc
+local_settings.py
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Redis dump
+dump.rdb

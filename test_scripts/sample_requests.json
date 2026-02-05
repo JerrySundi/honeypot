@@ -1,0 +1,102 @@
+{
+  "test_scenarios": [
+    {
+      "name": "Bank Account Blocking Scam",
+      "description": "Scammer claims account will be blocked",
+      "messages": [
+        {
+          "sessionId": "test-session-001",
+          "message": {
+            "sender": "scammer",
+            "text": "Your bank account will be blocked today! Verify immediately.",
+            "timestamp": "2026-01-31T10:00:00Z"
+          },
+          "conversationHistory": [],
+          "metadata": {
+            "channel": "SMS",
+            "language": "English",
+            "locale": "IN"
+          }
+        },
+        {
+          "sessionId": "test-session-001",
+          "message": {
+            "sender": "scammer",
+            "text": "Send ₹5000 to account 1234567890123456 to verify your identity",
+            "timestamp": "2026-01-31T10:01:00Z"
+          },
+          "conversationHistory": [
+            {
+              "sender": "scammer",
+              "text": "Your bank account will be blocked today! Verify immediately.",
+              "timestamp": "2026-01-31T10:00:00Z"
+            },
+            {
+              "sender": "user",
+              "text": "Oh no! What should I do?",
+              "timestamp": "2026-01-31T10:00:30Z"
+            }
+          ],
+          "metadata": {
+            "channel": "SMS",
+            "language": "English"
+          }
+        }
+      ]
+    },
+    {
+      "name": "UPI Fraud",
+      "description": "Scammer asks for UPI payment",
+      "request": {
+        "sessionId": "test-session-002",
+        "message": {
+          "sender": "scammer",
+          "text": "You have won ₹50,000! Send ₹500 processing fee to winner@paytm to claim your prize.",
+          "timestamp": "2026-01-31T11:00:00Z"
+        },
+        "conversationHistory": [],
+        "metadata": {
+          "channel": "WhatsApp",
+          "language": "English",
+          "locale": "IN"
+        }
+      }
+    },
+    {
+      "name": "OTP Phishing",
+      "description": "Scammer tries to get OTP",
+      "request": {
+        "sessionId": "test-session-003",
+        "message": {
+          "sender": "scammer",
+          "text": "Your account security needs upgrade. Click http://fake-bank.com and enter the OTP you receive.",
+          "timestamp": "2026-01-31T12:00:00Z"
+        },
+        "conversationHistory": [],
+        "metadata": {
+          "channel": "Email",
+          "language": "English",
+          "locale": "IN"
+        }
+      }
+    },
+    {
+      "name": "Multi-Information Scam",
+      "description": "Scammer provides multiple contact methods",
+      "request": {
+        "sessionId": "test-session-004",
+        "message": {
+          "sender": "scammer",
+          "text": "Your KYC is pending. Send ₹1000 to scammer@okaxis or call +91-9876543210. Visit http://kyc-verify.com for details.",
+          "timestamp": "2026-01-31T13:00:00Z"
+        },
+        "conversationHistory": [],
+        "metadata": {
+          "channel": "SMS",
+          "language": "English",
+          "locale": "IN"
+        }
+      }
+    }
+  ]
+}

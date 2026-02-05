@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: honeypot-scam-detector
+    env: python
+    buildCommand: pip install -r requirements.txt && python manage.py migrate
+    startCommand: gunicorn honeypot_project.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: API_SECRET_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: GUVI_CALLBACK_URL
+        value: https://hackathon.guvi.in/api/updateHoneyPotFinalResult
