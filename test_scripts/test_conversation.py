@@ -58,16 +58,52 @@ def run_test_conversation():
     print("=" * 80)
     print()
     
-    # Define scammer messages (simulating a typical bank fraud scam)
+    # Advanced scammer messages with complex patterns and obfuscation
     scammer_messages = [
-        "Your bank account will be blocked today due to suspicious activity!",
-        "You need to verify your account immediately by sending ₹5000 to my account.",
-        "Send the money to account number 9876543210 at HDFC Bank.",
-        "Or you can use UPI. My UPI ID is scammer123@paytm",
-        "Call me at +91-9876543210 if you have any issues with the transfer.",
-        "Click this link to verify: http://fake-bank-verify.com/account",
-        "Why are you delaying? Your account will be permanently closed!",
-        "Send the OTP you receive to confirm the transaction.",
+        # Turn 1: Urgent bank alert
+        "URGENT ALERT! Your HDFC bank account has been temporarily suspended due to KYC pending. Update now!",
+        
+        # Turn 2: Multiple contact methods
+        "Dear customer, call our helpline at 91-8765432109 or WhatsApp 7654321098 immediately to reactivate.",
+        
+        # Turn 3: Mixed payment options with obfuscated data
+        "To verify, send ₹100 to UPI: verify2024@paytm or account no. 1234 5678 9012 3456 (HDFC Bank)",
+        
+        # Turn 4: Email and website phishing
+        "Confirm your details at www . verifybank . com or email us at support@verifybank.in with your PAN details",
+        
+        # Turn 5: IFSC code and complex account details
+        "Transfer funds to A/C: 50100123456789, IFSC: HDFC0001234, branch Koramangala. UPI also accepted: merchant2024@ybl",
+        
+        # Turn 6: Shortened URL and urgency
+        "ACT NOW! Visit bit.ly/verify2024 to prevent account closure. Last 2 hours remaining!",
+        
+        # Turn 7: Multiple UPI formats
+        "Payment methods: 9876543210@paytm OR wallet2024@phonepe OR 8765432109@gpay - choose any one!",
+        
+        # Turn 8: Obfuscated phone with alternate formats
+        "Contact: +91 9876-543-210 or 08765432109 for instant activation. Don't delay!",
+        
+        # Turn 9: Credit card fraud attempt
+        "Your credit card ending 1234 has unauthorized transaction. Share CVV to block: support 2024 @ gmail . com",
+        
+        # Turn 10: OTP phishing with multiple channels
+        "We sent OTP to your mobile. Share it on WhatsApp +919876543210 or call 7654321098 to verify immediately",
+        
+        # Turn 11: Fake refund with account details
+        "Congratulations! ₹5000 refund approved. Account: 60123456789012, IFSC: SBIN0012345. Share OTP to process.",
+        
+        # Turn 12: Prize scam with contact info
+        "You WON ₹50,000! Claim at claimprize.online/winner2024 or contact winner@lottery-india.com, call 8765432109",
+        
+        # Turn 13: Mixed language and symbols
+        "Aap ke account mein problem hai! Send money: 7654321098@paytm ya call karein +91-8765-432-109 turant!",
+        
+        # Turn 14: Government impersonation
+        "Income Tax Department alert! Pay pending tax ₹10,000 to govt-payment@paytm or visit incometax-refund.tk",
+        
+        # Turn 15: Final pressure with all details
+        "LAST WARNING! Send to: A/C 70200123456789, IFSC ICIC0001234, UPI: final2024@okicici, OR call 9876543210 NOW!"
     ]
     
     for i, scammer_text in enumerate(scammer_messages):
@@ -123,17 +159,19 @@ def run_test_conversation():
 
 
 def run_quick_test():
-    """Run a quick 3-message test"""
+    """Run a quick 5-message test with challenging patterns"""
     
     session_id = str(uuid.uuid4())
     conversation_history = []
     
-    print("\n🧪 QUICK TEST - 3 Messages\n")
+    print("\n🧪 QUICK TEST - 5 Advanced Messages\n")
     
     messages = [
-        "Your account has been blocked! Verify immediately.",
-        "Send ₹1000 to 1234567890@paytm to unblock.",
-        "Call +91-9999999999 for help."
+        "URGENT! Your ICICI account suspended. Contact 9876543210 immediately!",
+        "Verify at secure-bank . com or UPI: verify@paytm with ₹100",
+        "Account details: 50100234567890, IFSC: ICIC0001234 needed",
+        "Email proof to support@bank-verify.in or call 08765432109",
+        "Last chance! Visit bit.ly/verify or WhatsApp 7654321098 NOW!"
     ]
     
     for msg in messages:
@@ -149,6 +187,7 @@ def run_quick_test():
                 "text": msg,
                 "timestamp": datetime.now().isoformat() + "Z"
             })
+            
             conversation_history.append({
                 "sender": "user",
                 "text": reply,
@@ -156,6 +195,13 @@ def run_quick_test():
             })
         
         time.sleep(0.5)
+    
+    print("✅ Quick test completed!")
+
+
+def run_full_test():
+    """Run the full 15-message advanced test"""
+    return run_test_conversation()
 
 
 if __name__ == "__main__":
@@ -163,23 +209,32 @@ if __name__ == "__main__":
     
     print("""
 ╔══════════════════════════════════════════════════════════════╗
-║           HONEYPOT SCAM DETECTOR - TEST SCRIPT               ║
+║      HONEYPOT SCAM DETECTOR - ADVANCED TEST SUITE           ║
 ╚══════════════════════════════════════════════════════════════╝
 
 Select test mode:
-1. Full conversation test (8 messages)
-2. Quick test (3 messages)
+1. Full Test (15 advanced messages) - Complete scam simulation
+2. Quick Test (5 messages) - Fast verification  
 3. Exit
+
+Tests include detection of:
+  ✓ UPI IDs (multiple formats & providers)
+  ✓ Bank account numbers & IFSC codes
+  ✓ Phone numbers (various formats)
+  ✓ Email addresses
+  ✓ Phishing URLs (including obfuscated & shortened)
+  ✓ Suspicious keywords
 
 """)
     
     choice = input("Enter choice (1-3): ").strip()
     
     if choice == "1":
-        run_test_conversation()
+        run_full_test()
     elif choice == "2":
         run_quick_test()
     elif choice == "3":
         print("👋 Goodbye!")
     else:
         print("❌ Invalid choice")
+
