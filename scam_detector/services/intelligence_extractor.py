@@ -95,11 +95,18 @@ class IntelligenceExtractor:
         # Pattern 1: Catch all @something patterns (user@anything)
         # Key logic: If there's NO dot after @, it's a UPI ID
         # If there IS a dot after @, it's an email (handled separately)
+        # If there's a dot BEFORE @ (in username), it's likely email not UPI
         pattern1 = r'\b[\w\.\-]+@[\w\-]+\b'
         matches = re.findall(pattern1, text.lower())
         
         for match in matches:
             domain = match.split('@')[1] if '@' in match else ''
+            username = match.split('@')[0] if '@' in match else ''
+            
+            # Skip if username has dots (user.name@bank) - likely email not UPI
+            if '.' in username:
+                continue
+                
             # UPI IDs don't have dots in the domain part
             # Emails do (gmail.com, yahoo.com, etc.)
             if '.' not in domain:
@@ -223,21 +230,39 @@ class IntelligenceExtractor:
         """Extract email addresses"""
         emails = set()
         
-        # Pattern 1: Standard email format
+        # Pattern 1: Standard email format (with TLD)
         pattern1 = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         matches1 = re.findall(pattern1, text)
         emails.update(m.lower() for m in matches1)
         
-        # Pattern 2: Email with keywords
-        pattern2 = r'(?:email|mail|e-mail)[\s\:\-]*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,})'
+        # Pattern 2: Email with keywords (with or without TLD)
+        pattern2 = r'(?:email|mail|e-mail)[\s\:\-]*([A-Za-z0-9._%+-]+@[A-Za-z0-9.\-]+)'
         matches2 = re.findall(pattern2, text, re.IGNORECASE)
         emails.update(m.lower() for m in matches2)
+        
+        # Pattern 3: Any @something pattern with dots (relaxed for email context)
+        # This catches formats like user.name@fakebank
+        pattern3 = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.\-]+\b'
+        matches3 = re.findall(pattern3, text)
+        
+        # Add relaxed matches but filter carefully
+        for match in matches3:
+            match_lower = match.lower()
+            domain = match_lower.split('@')[1] if '@' in match_lower else ''
+            username = match_lower.split('@')[0] if '@' in match_lower else ''
+            
+            # Include if:
+            # 1. Has dots in username (user.name@anything) - likely email not UPI
+            # 2. Domain is not a known UPI provider
+            # 3. Domain has dots (traditional email)
+            if '.' in username or ('.' in domain and not any(provider in domain for provider in self.upi_providers)):
+                emails.add(match_lower)
         
         # Filter out UPI IDs that look like emails
         filtered_emails = set()
         for email in emails:
             domain = email.split('@')[1] if '@' in email else ''
-            # Only keep if not a UPI provider
+            # Only keep if not a known UPI provider domain
             if not any(provider in domain for provider in self.upi_providers):
                 filtered_emails.add(email)
         
