@@ -287,8 +287,11 @@ class IntelligenceExtractor:
         """Merge new intelligence with existing, removing duplicates"""
         merged = {}
         
-        for key in existing.keys():
-            combined = existing[key] + new.get(key, [])
+        # Get all keys from both existing and new intelligence
+        all_keys = set(existing.keys()) | set(new.keys())
+        
+        for key in all_keys:
+            combined = existing.get(key, []) + new.get(key, [])
             merged[key] = list(set(combined))  # Remove duplicates
         
         return merged

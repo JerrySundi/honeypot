@@ -64,6 +64,8 @@ class SessionManager:
                 "upiIds": [],
                 "phoneNumbers": [],
                 "phishingLinks": [],
+                "emailAddresses": [],
+                "ifscCodes": [],
                 "suspiciousKeywords": []
             },
             "agentPersona": {

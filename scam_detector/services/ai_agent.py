@@ -138,42 +138,44 @@ Remember: YOU are the victim. YOU are asking for help. YOU are scared. YOU trust
         intelligence = session_data.get('intelligence', {})
         message_count = session_data.get('messageCount', 0)
         
-        # Build conversation history string (last 6 messages for context)
+        # Build conversation history string (last 4 messages for context)
         history_str = ""
         if conversation_history:
-            recent_history = conversation_history[-6:]
+            recent_history = conversation_history[-4:]
             for msg in recent_history:
-                sender = "THEM" if msg['sender'] == 'scammer' else "YOU (Ramesh)"
+                sender = "THEM" if msg['sender'] == 'scammer' else "YOU"
                 history_str += f"{sender}: {msg['text']}\n"
         
-        # Current message from scammer
-        current_msg = conversation_history[-1]['text'] if conversation_history else ""
+        # Build intelligence summary - SHOW WHAT WE HAVE
+        intel_summary = []
+        if intelligence.get('bankAccounts'):
+            intel_summary.append(f"✅ Bank Accounts: {intelligence['bankAccounts']}")
+        if intelligence.get('upiIds'):
+            intel_summary.append(f"✅ UPI IDs: {intelligence['upiIds']}")
+        if intelligence.get('phoneNumbers'):
+            intel_summary.append(f"✅ Phone Numbers: {intelligence['phoneNumbers']}")
+        if intelligence.get('ifscCodes'):
+            intel_summary.append(f"✅ IFSC Codes: {intelligence['ifscCodes']}")
+        if intelligence.get('emailAddresses'):
+            intel_summary.append(f"✅ Email Addresses: {intelligence['emailAddresses']}")
+        if intelligence.get('phishingLinks'):
+            intel_summary.append(f"✅ Links: {intelligence['phishingLinks']}")
+        
+        intel_str = "\n".join(intel_summary) if intel_summary else "❌ Nothing extracted yet"
         
         # Determine what to ask for based on what's missing
         priority_target = self._get_priority_target(intelligence, message_count)
         
-        # Build context prompt with clear instructions
-        context = f"""📜 CONVERSATION SO FAR:
-{history_str}
+        # Build simple context prompt
+        context = f"""Recent conversation:
+{history_str if history_str else '(Start of conversation)'}
 
-🎯 CURRENT SITUATION:
-They just said: "{current_msg}"
+What you've collected from them so far:
+{intel_str}
 
-🔍 INTELLIGENCE STATUS:
-{'✅' if intelligence.get('bankAccounts') else '❌'} Bank Accounts: {len(intelligence.get('bankAccounts', []))} extracted
-{'✅' if intelligence.get('upiIds') else '❌'} UPI IDs: {len(intelligence.get('upiIds', []))} extracted
-{'✅' if intelligence.get('phoneNumbers') else '❌'} Phone Numbers: {len(intelligence.get('phoneNumbers', []))} extracted  
-{'✅' if intelligence.get('phishingLinks') else '❌'} Links: {len(intelligence.get('phishingLinks', []))} extracted
+Your next action: {priority_target}
 
-💡 YOUR NEXT MOVE:
-{priority_target}
-
-⚡ GENERATE YOUR RESPONSE:
-- Read what THEY said carefully
-- Respond as Ramesh Kumar (worried elderly person)
-- Keep it to 1-2 short sentences
-- {priority_target.split(':')[0] if ':' in priority_target else 'Continue naturally'}
-- Stay in character!"""
+Respond as scared Ramesh (1-2 sentences, DON'T repeat questions you already asked):"""
 
         return context
     
@@ -188,30 +190,38 @@ They just said: "{current_msg}"
         
         # Early conversation: Build rapport
         if message_count <= 1:
-            return "Be scared and worried. Ask what you should do and request their phone number to call if needed."
+            return "Be scared and worried. Ask what you should do."
         
-        # Priority 1: Get payment details
+        # Priority 1: Get payment details (UPI or bank account)
         if not has_upi and not has_bank:
-            return "Ask where to send money - request THEIR UPI ID and bank account number."
+            return "Ask where to send money - request THEIR UPI ID or bank account number."
         
-        # Priority 2: Get IFSC and branch details when they mention a bank
+        # Priority 2: Get IFSC code if they gave payment details
         if (has_upi or has_bank) and not has_ifsc:
-            return "They gave payment info. Ask: 'Which bank is this? What's the IFSC code and branch name?'"
+            return "They gave payment info but no IFSC. Ask: 'Which bank? What's the IFSC code?'"
         
-        # Priority 3: Get phone numbers
+        # Priority 3: Get phone number
         if not has_phone:
-            return "Ask for THEIR phone number so you can call them if there's any problem."
+            return "Ask for THEIR phone number so you can call them if there's a problem."
         
-        # Priority 4: Get additional contact details
-        if not has_email:
-            return "Ask for their email address: 'Can you give me your email also for confirmation?'"
+        # Priority 4: If they mentioned bank name but no branch, ask for branch
+        if has_ifsc and message_count <= 8:
+            return "Ask for the bank branch name: 'Which branch is this account in?'"
         
-        # Priority 5: Get links
-        if not has_link:
-            return "If they mention a website or ask you to click something, say it's not opening and ask them to send the link again."
+        # Priority 5: Get email
+        if not has_email and message_count > 3:
+            return "Ask for their email: 'Can you also give your email for confirmation?'"
         
-        # Keep extracting more details
-        return "Keep asking follow-up questions naturally: 'Which branch?', 'What's your alternate phone number?', 'Can you send me your email?'"
+        # Priority 6: Get alternate phone if only have one
+        if has_phone and len(intelligence.get('phoneNumbers', [])) < 2 and message_count > 5:
+            return "Ask for alternate phone number: 'Give me one more number in case first is busy?'"
+        
+        # Priority 7: Get links if they mention website
+        if not has_link and message_count > 4:
+            return "If they mentioned website or link, say it's not opening and ask them to send it again."
+        
+        # Continue naturally
+        return "React to what they said. Express concern and trust them. Ask follow-up questions about the process."
     
     def _identify_missing_intelligence(self, intelligence: Dict) -> str:
         """Identify what intelligence is still missing"""
